@@ -25,12 +25,11 @@ m = [zeros(1, nAcq), mMod];
 tic;
 fprintf('Simulating synthesizer (both paths, architecture unchanged)...\n');
 out = sim_twopoint_pll(P, m, 'both');
-fprintf('  %.1f s, DAC clips %d, OFS LSB %.4f Hz\n', toc, out.nDacClip, P.quantLsb_Hz);
-% Ideal FM is m_q, the 16-bit command both paths actually see.
-% The pre-quantization SRRC is only the input to that quantizer.
+fprintf('  %.1f s, DAC clips %d, 12-bit LSB %.4f Hz\n', toc, out.nDacClip, P.quantLsb_Hz);
 mCmd = out.m_q;
 dq = mCmd - m;
-fprintf('  ideal FM source: m_q (not pre-quantization m); |m-m_q| max %.3f Hz\n', max(abs(dq)));
+fprintf('  |m - m_q| max %.3f Hz (half of %.3f Hz LSB is %.3f Hz)\n', ...
+    max(abs(dq)), P.quantLsb_Hz, P.quantLsb_Hz / 2);
 
 sps = P.sps;
 half = (P.rrcSpan / 2) * sps;
@@ -49,26 +48,30 @@ symSample = nAcq + (symIndex - 1) * sps + 1;
 symLevel = symDev(symIndex);
 symInSlice = symSample - i0 + 1;
 
-fIdeal = mCmd(i0:i1);
+fFloat = m(i0:i1);
+fCmd = mCmd(i0:i1);
 fSynth = out.fDevRf(i0:i1);
-mRef = mCmd(i0:i1);
 
-fprintf('Fitting ideal FM...\n');
-A = fsk_fit(fIdeal, mRef, symInSlice, inner, P.fsMod_Hz);
-fprintf('Fitting synthesizer...\n');
-B = fsk_fit(fSynth, mRef, symInSlice, inner, P.fsMod_Hz);
+% Three fits. The reference is the second argument.
+fprintf('Fitting synthesizer vs pre-quantization m...\n');
+Rsm = fsk_fit(fSynth, fFloat, symInSlice, inner, P.fsMod_Hz);
+fprintf('Fitting synthesizer vs m_q...\n');
+Rsq = fsk_fit(fSynth, fCmd, symInSlice, inner, P.fsMod_Hz);
+fprintf('Fitting m_q vs pre-quantization m...\n');
+Rqm = fsk_fit(fCmd, fFloat, symInSlice, inner, P.fsMod_Hz);
 
 fs = P.fsMod_Hz;
-fIdealCore = mCmd(iValid0:iValid1);
-fSynthCore = out.fDevRf(iValid0:iValid1);
-[acA, specA] = acpr_all(fIdealCore, fs);
-[acB, specB] = acpr_all(fSynthCore, fs);
-acLeak = acpr_all(zeros(size(fIdealCore)), fs);
+[acM, specM] = acpr_all(m(iValid0:iValid1), fs);
+[acQ, specQ] = acpr_all(mCmd(iValid0:iValid1), fs);
+[acS, specS] = acpr_all(out.fDevRf(iValid0:iValid1), fs);
+acLeak = acpr_all(zeros(size(m(iValid0:iValid1))), fs);
 
-print_fsk('A ideal FM', A);
-print_fsk('B synthesizer', B);
-print_acpr('A ideal FM', acA);
-print_acpr('B synthesizer', acB);
+print_fsk('synthesizer vs m(t)', Rsm);
+print_fsk('synthesizer vs m_q', Rsq);
+print_fsk('ideal FM of m_q vs m(t)', Rqm);
+print_acpr('ideal FM of m(t)', acM);
+print_acpr('ideal FM of m_q', acQ);
+print_acpr('synthesizer', acS);
 print_acpr('window leakage (unmodulated)', acLeak);
 
 if ~exist(P.figDir, 'dir')
@@ -77,9 +80,9 @@ end
 if ~exist(P.mediaDir, 'dir')
     mkdir(P.mediaDir);
 end
-plot_fsk(P, A, B, symLevel);
-plot_acpr(P, specA, specB, acA, acB);
-write_fsk_acpr(rootDir, P, A, B, acA, acB, acLeak);
+plot_fsk(P, Rsm, Rsq, Rqm, symLevel);
+plot_acpr(P, specM, specQ, specS, acM, acQ, acS);
+write_fsk_acpr(rootDir, P, Rsm, Rsq, Rqm, acM, acQ, acS, acLeak);
 fprintf('Figures:\n  %s\n  %s\n', P.figDir, P.mediaDir);
 end
 
@@ -262,46 +265,54 @@ fprintf(' %.2f', ac.d2.dB);
 fprintf('\n');
 end
 
-function plot_fsk(P, A, B, symLevel)
+function plot_fsk(P, Rsm, Rsq, Rqm, symLevel)
 h = figure('visible', 'off');
 set(h, 'position', [40 40 980 760]);
+cM = [0.45 0.45 0.45];
+cQ = [0.75 0.35 0.05];
+cS = [0.12 0.25 0.65];
 
 subplot(2, 1, 1);
-i1 = min(numel(A.resid), A.plot0 + round(0.012 * P.fsMod_Hz) - 1);
-idx = A.plot0:i1;
-tms = (idx - A.plot0) / P.fsMod_Hz * 1e3;
-plot(tms, A.resid(idx), 'Color', [0.55 0.55 0.55], 'LineWidth', 1.1);
+i1 = min(numel(Rsm.resid), Rsm.plot0 + round(0.012 * P.fsMod_Hz) - 1);
+idx = Rsm.plot0:i1;
+tms = (idx - Rsm.plot0) / P.fsMod_Hz * 1e3;
+plot(tms, Rqm.resid(idx), 'Color', cQ, 'LineWidth', 1.05);
 hold on;
-plot(tms, B.resid(idx), 'Color', [0.15 0.25 0.65], 'LineWidth', 1.1);
+plot(tms, Rsq.resid(idx), 'Color', cS, 'LineWidth', 1.05);
+plot(tms, Rsm.resid(idx), 'Color', cM, 'LineWidth', 1.0);
 grid on;
 xlabel('Time from start of fit window (ms)');
 ylabel('Residual deviation (Hz)');
-title(sprintf('Waveform-fit residual    ideal %.2f %%    synthesizer %.2f %%', ...
-    A.fskWave_pct, B.fskWave_pct));
-legend('ideal FM', 'synthesizer', 'location', 'northeast');
+title(sprintf('Waveform fit   synth/m %.2f %%   synth/m_q %.2f %%   m_q/m %.2f %%', ...
+    Rsm.fskWave_pct, Rsq.fskWave_pct, Rqm.fskWave_pct));
+legend('m_q vs m(t)', 'synth vs m_q', 'synth vs m(t)', 'location', 'northeast');
 
 subplot(2, 1, 2);
-plot(symLevel(A.symOk), A.symErr_Hz, '.', 'Color', [0.55 0.55 0.55], 'MarkerSize', 8);
+plot(symLevel(Rqm.symOk), Rqm.symErr_Hz, '.', 'Color', cQ, 'MarkerSize', 8);
 hold on;
-plot(symLevel(B.symOk), B.symErr_Hz, '.', 'Color', [0.1 0.25 0.7], 'MarkerSize', 8);
+plot(symLevel(Rsq.symOk), Rsq.symErr_Hz, '.', 'Color', cS, 'MarkerSize', 8);
+plot(symLevel(Rsm.symOk), Rsm.symErr_Hz, '.', 'Color', cM, 'MarkerSize', 7);
 plot([-2200 2200], [0 0], 'k-', 'LineWidth', 0.7);
 grid on;
 xlabel('Known symbol deviation (Hz)');
 ylabel('Symbol-centre residual (Hz)');
-title(sprintf('Symbol centres    ideal %.2f %%    synthesizer %.2f %% of 1944 Hz', ...
-    A.fskSym_pct, B.fskSym_pct));
-legend('ideal FM', 'synthesizer', 'location', 'northeast');
+title(sprintf('Symbol centres / 1944 Hz   synth/m %.2f %%   synth/m_q %.2f %%   m_q/m %.2f %%', ...
+    Rsm.fskSym_pct, Rsq.fskSym_pct, Rqm.fskSym_pct));
+legend('m_q vs m(t)', 'synth vs m_q', 'synth vs m(t)', 'location', 'northeast');
 save_png(h, P, '06_fsk_error.png');
 end
 
-function plot_acpr(P, specA, specB, acA, acB)
+function plot_acpr(P, specM, specQ, specS, acM, acQ, acS)
 h = figure('visible', 'off');
 set(h, 'position', [40 40 980 640]);
-dbA = 10 * log10(specA.p / max(specA.p) + 1e-30);
-dbB = 10 * log10(specB.p / max(specA.p) + 1e-30);
-plot(specA.f / 1e3, dbA, 'Color', [0.55 0.55 0.55], 'LineWidth', 1.0);
+ref = max(specM.p);
+dbM = 10 * log10(specM.p / ref + 1e-30);
+dbQ = 10 * log10(specQ.p / ref + 1e-30);
+dbS = 10 * log10(specS.p / ref + 1e-30);
+plot(specM.f / 1e3, dbM, 'Color', [0.55 0.55 0.55], 'LineWidth', 1.0);
 hold on;
-plot(specB.f / 1e3, dbB, 'Color', [0.1 0.25 0.65], 'LineWidth', 1.0);
+plot(specQ.f / 1e3, dbQ, 'Color', [0.75 0.35 0.05], 'LineWidth', 1.0);
+plot(specS.f / 1e3, dbS, 'Color', [0.1 0.25 0.65], 'LineWidth', 1.0);
 for fk = [-25, -12.5, 12.5, 25]
     plot([fk fk], [-120 5], '--', 'Color', [0.75 0.2 0.15], 'LineWidth', 0.8);
 end
@@ -313,10 +324,9 @@ xlim([-40 40]);
 ylim([-110 5]);
 xlabel('Offset from 450 MHz carrier (kHz)');
 ylabel('Normalized envelope power (dB)');
-title(sprintf('Complex envelope    mask ACPR adj/alt  ideal %.1f / %.1f dBc    synth %.1f / %.1f dBc', ...
-    acA.mask.adj_worst_dB, acA.mask.alt_worst_dB, ...
-    acB.mask.adj_worst_dB, acB.mask.alt_worst_dB));
-legend('ideal FM', 'synthesizer', 'location', 'northeast');
+title(sprintf('Mask adjacent   m %.1f   m_q %.1f   synth %.1f dBc', ...
+    acM.mask.adj_worst_dB, acQ.mask.adj_worst_dB, acS.mask.adj_worst_dB));
+legend('ideal FM of m(t)', 'ideal FM of m_q', 'synthesizer', 'location', 'northeast');
 save_png(h, P, '07_acpr_spectrum.png');
 end
 
@@ -327,7 +337,7 @@ close(h);
 copyfile(out, fullfile(P.mediaDir, name));
 end
 
-function write_fsk_acpr(rootDir, P, A, B, acA, acB, acLeak)
+function write_fsk_acpr(rootDir, P, Rsm, Rsq, Rqm, acM, acQ, acS, acLeak)
 fid = fopen(fullfile(rootDir, 'fsk_acpr_results.txt'), 'w');
 fprintf(fid, 'nSymbols %d\n', P.nSymbols);
 fprintf(fid, 'seed %d\n', P.seed);
@@ -337,9 +347,14 @@ fprintf(fid, 'fPfd_Hz %.0f\n', P.fPfd_Hz);
 fprintf(fid, 'INT %d\n', P.INT);
 fprintf(fid, 'FRAC %d\n', P.FRAC);
 fprintf(fid, 'MOD %d\n', P.MOD);
-fprintf(fid, 'ideal_source m_q\n');
-write_one(fid, 'ideal', A, acA);
-write_one(fid, 'synth', B, acB);
+fprintf(fid, 'quant_bits %d\n', P.quantBits);
+fprintf(fid, 'quant_lsb_Hz %.8f\n', P.quantLsb_Hz);
+write_fit(fid, 'synth_vs_m', Rsm);
+write_fit(fid, 'synth_vs_mq', Rsq);
+write_fit(fid, 'mq_vs_m', Rqm);
+write_ac(fid, 'm', acM);
+write_ac(fid, 'mq', acQ);
+write_ac(fid, 'synth', acS);
 fprintf(fid, 'leak_window_dB');
 fprintf(fid, ' %.4f', acLeak.window.dB);
 fprintf(fid, '\n');
@@ -349,12 +364,16 @@ fprintf(fid, '\n');
 fclose(fid);
 end
 
-function write_one(fid, tag, R, ac)
+function write_fit(fid, tag, R)
 fprintf(fid, '%s_fsk_wave_pct %.6f\n', tag, R.fskWave_pct);
 fprintf(fid, '%s_f0_Hz %.6f\n', tag, R.f0_Hz);
 fprintf(fid, '%s_k %.8f\n', tag, R.k);
 fprintf(fid, '%s_tau_us %.6f\n', tag, R.tau_s * 1e6);
 fprintf(fid, '%s_fsk_sym_pct %.6f\n', tag, R.fskSym_pct);
+fprintf(fid, '%s_sym_rms_Hz %.6f\n', tag, sqrt(mean(R.symErr_Hz.^2)));
+end
+
+function write_ac(fid, tag, ac)
 fprintf(fid, '%s_window_dB', tag);
 fprintf(fid, ' %.4f', ac.window.dB);
 fprintf(fid, '\n');

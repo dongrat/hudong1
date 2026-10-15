@@ -42,8 +42,11 @@ P.modScale = floor(8388607 / P.modReduced);   % 8191
 P.MOD = P.modReduced * P.modScale;            % 8387584
 P.FRAC = P.fracReduced * P.modScale;          % 6511845
 P.ofsDen = 8388607;           % DS max unsigned 23-bit OFS_DEN
-P.ofsBits = 16;               % DS OFS_MDLT signed
-P.quantLsb_Hz = P.fPfd_Hz / P.ofsDen;   % RF Hz per OFS_MDLT count
+P.ofsBits = 16;               % DS OFS_MDLT signed width
+P.quantBits = 12;             % only the upper 12 bits are used
+P.quantShift = 16;            % one 12-bit count = 16 OFS LSBs
+P.ofsLsb_Hz = P.fPfd_Hz / P.ofsDen;
+P.quantLsb_Hz = P.quantShift * P.ofsLsb_Hz;   % ~37.5 Hz at RF
 P.dsmOrder = 3;               % ASSUMED MASH 1-1-1 (DS says 23-bit ΔΣ, not the order)
 P.dsmAtInt = 1;               % DS: normally 1 when offset modulation is used
 

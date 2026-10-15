@@ -6,22 +6,34 @@ fPfd_Hz 19660800
 INT 45
 FRAC 6511845
 MOD 8387584
-ideal_source m_q
-ideal_fsk_wave_pct 0.000000
-ideal_f0_Hz 0.000000
-ideal_k 1.00000000
-ideal_tau_us 0.000000
-ideal_fsk_sym_pct 0.000000
-ideal_window_dB -86.8187 -45.2367 0.0000 -45.6148 -86.8136
-ideal_mask_dB -87.1713 -65.5985 -65.5985 -87.2009
-ideal_rect_dB -88.8458 -64.3224 -64.7176 -89.0849
-synth_fsk_wave_pct 4.877385
-synth_f0_Hz 2.833513
-synth_k 1.05767595
-synth_tau_us 13.020833
-synth_fsk_sym_pct 3.744859
-synth_window_dB -93.4350 -42.7851 0.0000 -43.4065 -93.2541
-synth_mask_dB -89.5670 -62.7617 -62.9643 -89.5710
-synth_rect_dB -97.7871 -61.3120 -61.9105 -98.2309
+quant_bits 12
+quant_lsb_Hz 37.50000447
+synth_vs_m_fsk_wave_pct 4.917147
+synth_vs_m_f0_Hz 2.646571
+synth_vs_m_k 1.05831902
+synth_vs_m_tau_us 13.020833
+synth_vs_m_fsk_sym_pct 3.767012
+synth_vs_m_sym_rms_Hz 73.230708
+synth_vs_mq_fsk_wave_pct 4.909513
+synth_vs_mq_f0_Hz 2.847809
+synth_vs_mq_k 1.05767261
+synth_vs_mq_tau_us 13.020833
+synth_vs_mq_fsk_sym_pct 3.778125
+synth_vs_mq_sym_rms_Hz 73.446743
+mq_vs_m_fsk_wave_pct 0.749831
+mq_vs_m_f0_Hz -0.193951
+mq_vs_m_k 1.00058770
+mq_vs_m_tau_us 0.000000
+mq_vs_m_fsk_sym_pct 0.550970
+mq_vs_m_sym_rms_Hz 10.710849
+m_window_dB -87.2811 -45.2372 0.0000 -45.6223 -87.1841
+m_mask_dB -87.4581 -65.6024 -65.6034 -87.4501
+m_rect_dB -89.4924 -64.3301 -64.7217 -89.5866
+mq_window_dB -73.1511 -45.2345 0.0000 -45.7475 -73.2065
+mq_mask_dB -76.3941 -64.8112 -64.6744 -76.2740
+mq_rect_dB -75.0807 -63.6296 -63.9593 -75.0232
+synth_window_dB -80.8979 -42.7809 0.0000 -43.5111 -81.2464
+synth_mask_dB -85.3309 -62.3980 -62.4914 -84.8489
+synth_rect_dB -85.2829 -61.0575 -61.6234 -84.5448
 leak_window_dB -208.1671 -191.1630 0.0000 -191.1630 -208.1671
 leak_mask_dB -90.0000 -90.0000 -90.0000 -90.0000

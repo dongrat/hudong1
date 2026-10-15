@@ -57,7 +57,7 @@ fprintf('Simulating VCO path only...\n');
 R.vco = sim_twopoint_pll(P, m, 'vco');
 fprintf('  %.1f s\n', toc);
 
-% Plots and the error numbers use m_q, the shared 16-bit command.
+% Plots and the error numbers use m_q, the shared 12-bit command.
 R.m = R.both.m_q;
 R.mFloat = m;
 R.t = t;

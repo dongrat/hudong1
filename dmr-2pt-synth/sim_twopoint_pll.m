@@ -8,10 +8,11 @@ function out = sim_twopoint_pll(P, mRf, mode)
 %       'vco'  : direct VCO path only (closed-loop highpass)
 %
 %  mRf is the desired RF frequency deviation in Hz at fsMod (76.8 kHz).
-%  It is quantized to signed 16-bit OFS counts before either path:
-%    q = clamp(round(m * OFS_DEN / fPFD), -32768, 32767)
-%    m_q = q * fPFD / OFS_DEN
-%  Lch OFS_MDLT = q. Hch is rounded from m_q only:
+%  It is quantized to the upper 12 bits of the OFS word before either path:
+%    q16 = round(m * OFS_DEN / fPFD)
+%    q12 = clamp(round(q16 / 16), -2048, 2047)
+%    m_q = q12 * 16 * fPFD / OFS_DEN
+%  Lch OFS_MDLT = q12 * 16. Hch is rounded from m_q only:
 %    Hch = clamp(round(m_q * DIVSEL / Km * 4096 / 1.35), -2048, 2047)
 %  out.fDevRf is the TX-divider output deviation, (fVCO - fVCO0)/DIV.
 
@@ -37,7 +38,7 @@ MOD = P.MOD;
 fFree = P.fVco_Hz;
 
 % Both paths see the same quantized deviation. Do this before either channel.
-[m_q, qWord] = quantize_ofs(P, mRf);
+[m_q, qWord, q12] = quantize_ofs(P, mRf);
 
 % --- Hch: 12-bit MODDAC from m_q only, then SMF and Km (Hz at the VCO) ---
 fDirTick = zeros(1, nTick);
@@ -52,7 +53,7 @@ if useVco
     fDirTick = (P.Km_HzPerV * vSmf.') * 10^(P.modDacAg_dB / 20);
 end
 
-% --- Lch: OFS_MDLT = q, then the fraction added to FRAC/MOD ---
+% --- Lch: OFS_MDLT = q12*16, then the fraction added to FRAC/MOD ---
 accWord = zeros(1, nTick);
 nCarry = zeros(1, nTick);
 if usePll
@@ -161,6 +162,7 @@ out.fVco = fMean;
 out.fDevRf = (fMean - P.fVco_Hz) / P.divSel;
 out.m_q = m_q;
 out.q = qWord;
+out.q12 = q12;
 out.nInstMin = nMin;
 out.nInstMax = nMax;
 out.nDacClip = nClip;
