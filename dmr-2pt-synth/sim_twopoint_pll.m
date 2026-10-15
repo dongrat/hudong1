@@ -7,7 +7,12 @@ function out = sim_twopoint_pll(P, mRf, mode)
 %       'pll'  : low-frequency path only (closed-loop lowpass)
 %       'vco'  : direct VCO path only (closed-loop highpass)
 %
-%  mRf is the desired RF frequency deviation in Hz at fsMod (96 kHz).
+%  mRf is the desired RF frequency deviation in Hz at fsMod (76.8 kHz).
+%  It is quantized to signed 16-bit OFS counts before either path:
+%    q = clamp(round(m * OFS_DEN / fPFD), -32768, 32767)
+%    m_q = q * fPFD / OFS_DEN
+%  Lch OFS_MDLT = q. Hch is rounded from m_q only:
+%    Hch = clamp(round(m_q * DIVSEL / Km * 4096 / 1.35), -2048, 2047)
 %  out.fDevRf is the TX-divider output deviation, (fVCO - fVCO0)/DIV.
 
 if nargin < 3
@@ -31,13 +36,15 @@ INT = P.INT;
 MOD = P.MOD;
 fFree = P.fVco_Hz;
 
-% --- Hch: 12-bit MODDAC + SMF, then Km (Hz at the VCO) ---
+% Both paths see the same quantized deviation. Do this before either channel.
+[m_q, qWord] = quantize_ofs(P, mRf);
+
+% --- Hch: 12-bit MODDAC from m_q only, then SMF and Km (Hz at the VCO) ---
 fDirTick = zeros(1, nTick);
 nClip = 0;
 if useVco
-    vPk = P.dacVpp / 2;
-    vDesired = (P.divSel * mRf) / P.Km_HzPerV;
-    codeUnc = round(vDesired / vPk * 2048);
+    % code = m_q * DIVSEL / Km * 4096 / Vpp, signed 12-bit.
+    codeUnc = round(m_q * P.divSel / P.Km_HzPerV * 4096 / P.dacVpp);
     code = min(2047, max(-2048, codeUnc));
     nClip = sum(code ~= codeUnc);
     vAc = code * (P.dacVpp / 4096);
@@ -45,12 +52,11 @@ if useVco
     fDirTick = (P.Km_HzPerV * vSmf.') * 10^(P.modDacAg_dB / 20);
 end
 
-% --- Lch: 16-bit OFS_MDLT -> fraction added to FRAC/MOD ---
+% --- Lch: OFS_MDLT = q, then the fraction added to FRAC/MOD ---
 accWord = zeros(1, nTick);
 nCarry = zeros(1, nTick);
 if usePll
-    ofs = round(mRf * P.ofsDen / P.fPfd_Hz);
-    ofs = min(32767, max(-32768, ofs));
+    ofs = qWord;
     % delta = DEN_RATIO * OFS / OFS_DEN ; VCO frequency step = fPFD * delta
     add = round(P.denRatio * ofs * MOD / P.ofsDen);
     acc = P.FRAC + add;
@@ -153,6 +159,8 @@ end
 
 out.fVco = fMean;
 out.fDevRf = (fMean - P.fVco_Hz) / P.divSel;
+out.m_q = m_q;
+out.q = qWord;
 out.nInstMin = nMin;
 out.nInstMax = nMax;
 out.nDacClip = nClip;

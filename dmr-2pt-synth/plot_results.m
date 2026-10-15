@@ -37,8 +37,8 @@ end
 grid on;
 xlabel('Time (ms)');
 ylabel('Frequency deviation (Hz)');
-title('DMR 4FSK symbols and SRRC deviation m(t)');
-legend('m(t) SRRC', 'dibit deviation', 'location', 'northeast');
+title('DMR 4FSK symbols and quantized deviation m_q');
+legend('m_q', 'dibit deviation', 'location', 'northeast');
 ylim([-3200 3200]);
 save_png(h, figDir, mediaDir, '01_baseband_mt_symbols.png');
 
@@ -54,7 +54,7 @@ grid on;
 xlabel('Time (ms)');
 ylabel('RF frequency deviation (Hz)');
 title('Path contributions across the ~1 kHz PLL bandwidth');
-legend('ideal m(t)', 'PLL path only (lowpass)', 'VCO path only (highpass)', ...
+legend('ideal m_q', 'PLL path only (lowpass)', 'VCO path only (highpass)', ...
     'sum of the two paths', 'location', 'northeast');
 save_png(h, figDir, mediaDir, '02_path_contributions.png');
 
@@ -75,8 +75,8 @@ plot(tex, R.both.fDevRf(i0:i1), 'Color', [0.05 0.05 0.05], 'LineWidth', 1.15);
 grid on;
 xlabel('Time (ms)');
 ylabel('RF frequency deviation (Hz)');
-title('Combined instantaneous deviation vs ideal m(t)');
-legend('ideal m(t)', 'synthesizer output', 'location', 'northeast');
+title('Combined instantaneous deviation vs ideal m_q');
+legend('ideal m_q', 'synthesizer output', 'location', 'northeast');
 save_png(h, figDir, mediaDir, '03_combined_vs_ideal.png');
 
 % ---- 4. deviation error ----
@@ -111,7 +111,7 @@ ylim([-90 5]);
 xlabel('Offset from 450 MHz carrier (kHz)');
 ylabel('Normalized power (dB)');
 title('TX complex-envelope spectrum');
-legend('ideal m(t)', 'synthesizer', 'location', 'northeast');
+legend('ideal m_q', 'synthesizer', 'location', 'northeast');
 
 [fD, pMd] = dev_spectrum(mDev, fs);
 [~, pSd] = dev_spectrum(fDev, fs);
@@ -125,7 +125,7 @@ ylim([-70 5]);
 xlabel('Frequency (kHz)');
 ylabel('Normalized PSD (dB)');
 title('Spectrum of the frequency-deviation waveform');
-legend('ideal m(t)', 'synthesizer deviation', 'location', 'northeast');
+legend('ideal m_q', 'synthesizer deviation', 'location', 'northeast');
 save_png(h, figDir, mediaDir, '05_output_spectrum.png');
 end
 

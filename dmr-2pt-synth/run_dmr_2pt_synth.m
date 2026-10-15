@@ -57,7 +57,9 @@ fprintf('Simulating VCO path only...\n');
 R.vco = sim_twopoint_pll(P, m, 'vco');
 fprintf('  %.1f s\n', toc);
 
-R.m = m;
+% Plots and the error numbers use m_q, the shared 16-bit command.
+R.m = R.both.m_q;
+R.mFloat = m;
 R.t = t;
 R.symDev = symDev;
 R.bits = bits;
@@ -95,7 +97,9 @@ else
     fprintf('%.2f ms\n', R.lock_s * 1e3);
 end
 fprintf('Acquisition residual RMS (last 1 ms): %.2f Hz\n', R.acqResidual_Hz);
-fprintf('Deviation error vs m(t): RMS %.2f Hz, peak %.2f Hz\n', R.rmsErr_Hz, R.peakErr_Hz);
+fprintf('Deviation error vs m_q: RMS %.2f Hz, peak %.2f Hz\n', R.rmsErr_Hz, R.peakErr_Hz);
+fprintf('Quantizer |m - m_q| max %.3f Hz (LSB %.4f Hz)\n', ...
+    max(abs(R.mFloat - R.m)), P.quantLsb_Hz);
 fprintf('Linearity (pll-only + vco-only - both) RMS: %.2f Hz\n', R.rmsLin_Hz);
 
 if ~exist(P.figDir, 'dir')

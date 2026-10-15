@@ -25,7 +25,12 @@ m = [zeros(1, nAcq), mMod];
 tic;
 fprintf('Simulating synthesizer (both paths, architecture unchanged)...\n');
 out = sim_twopoint_pll(P, m, 'both');
-fprintf('  %.1f s, DAC clips %d\n', toc, out.nDacClip);
+fprintf('  %.1f s, DAC clips %d, OFS LSB %.4f Hz\n', toc, out.nDacClip, P.quantLsb_Hz);
+% Ideal FM is m_q, the 16-bit command both paths actually see.
+% The pre-quantization SRRC is only the input to that quantizer.
+mCmd = out.m_q;
+dq = mCmd - m;
+fprintf('  ideal FM source: m_q (not pre-quantization m); |m-m_q| max %.3f Hz\n', max(abs(dq)));
 
 sps = P.sps;
 half = (P.rrcSpan / 2) * sps;
@@ -44,9 +49,9 @@ symSample = nAcq + (symIndex - 1) * sps + 1;
 symLevel = symDev(symIndex);
 symInSlice = symSample - i0 + 1;
 
-fIdeal = m(i0:i1);
+fIdeal = mCmd(i0:i1);
 fSynth = out.fDevRf(i0:i1);
-mRef = m(i0:i1);
+mRef = mCmd(i0:i1);
 
 fprintf('Fitting ideal FM...\n');
 A = fsk_fit(fIdeal, mRef, symInSlice, inner, P.fsMod_Hz);
@@ -54,7 +59,7 @@ fprintf('Fitting synthesizer...\n');
 B = fsk_fit(fSynth, mRef, symInSlice, inner, P.fsMod_Hz);
 
 fs = P.fsMod_Hz;
-fIdealCore = m(iValid0:iValid1);
+fIdealCore = mCmd(iValid0:iValid1);
 fSynthCore = out.fDevRf(iValid0:iValid1);
 [acA, specA] = acpr_all(fIdealCore, fs);
 [acB, specB] = acpr_all(fSynthCore, fs);
@@ -84,7 +89,7 @@ function R = fsk_fit(fMeas, mRef, symInSlice, inner, fs)
 fMeas = fMeas(:);
 mRef = mRef(:);
 n = numel(fMeas);
-span = 30;                 % samples, ±1.5 symbols at 20 samples/symbol
+span = 30;                 % samples; > 1 symbol at sps = 16, and < the 40-sample pad
 coarse = -span:0.25:span;
 [tauC, ~] = search_tau(fMeas, mRef, inner, coarse);
 fine = (tauC - 0.5):0.02:(tauC + 0.5);
@@ -326,6 +331,13 @@ function write_fsk_acpr(rootDir, P, A, B, acA, acB, acLeak)
 fid = fopen(fullfile(rootDir, 'fsk_acpr_results.txt'), 'w');
 fprintf(fid, 'nSymbols %d\n', P.nSymbols);
 fprintf(fid, 'seed %d\n', P.seed);
+fprintf(fid, 'sps %d\n', P.sps);
+fprintf(fid, 'fsMod_Hz %.0f\n', P.fsMod_Hz);
+fprintf(fid, 'fPfd_Hz %.0f\n', P.fPfd_Hz);
+fprintf(fid, 'INT %d\n', P.INT);
+fprintf(fid, 'FRAC %d\n', P.FRAC);
+fprintf(fid, 'MOD %d\n', P.MOD);
+fprintf(fid, 'ideal_source m_q\n');
 write_one(fid, 'ideal', A, acA);
 write_one(fid, 'synth', B, acB);
 fprintf(fid, 'leak_window_dB');
