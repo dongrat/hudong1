@@ -1,0 +1,20 @@
+nSymbols 400
+seed 2404
+ideal_fsk_wave_pct 0.000000
+ideal_f0_Hz 0.000000
+ideal_k 1.00000000
+ideal_tau_us 0.000000
+ideal_fsk_sym_pct 0.000000
+ideal_window_dB -88.0489 -45.2435 0.0000 -45.6287 -87.9429
+ideal_mask_dB -87.8071 -65.6044 -65.6129 -87.8048
+ideal_rect_dB -90.3314 -64.3262 -64.7413 -90.4551
+synth_fsk_wave_pct 5.353187
+synth_f0_Hz 3.357064
+synth_k 1.06386712
+synth_tau_us 14.062500
+synth_fsk_sym_pct 4.034941
+synth_window_dB -93.4975 -42.5501 0.0000 -43.2010 -93.1785
+synth_mask_dB -89.5242 -62.5198 -62.7175 -89.5272
+synth_rect_dB -97.5482 -61.0604 -61.6465 -97.7407
+leak_window_dB -207.2166 -191.0609 0.0000 -191.0609 -207.2166
+leak_mask_dB -90.0000 -90.0000 -90.0000 -90.0000
