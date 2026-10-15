@@ -8,31 +8,33 @@ FRAC 6511845
 MOD 8387584
 quant_bits 12
 quant_lsb_Hz 37.50000447
-hpre_fz_Hz 11952.000
-hpre_fp_Hz 26533.440
-hpre_Qz 0.8010
-hpre_Qp 1.2470
-hpre_boost3_dB -0.0296
-hpre_lead3_deg 13.3159
-hpre_boost6_dB 0.1036
-hpre_lead6_deg 29.8734
-hpre_maxBoost_dB 16.3479
-hpre_nyquist_dB 13.8541
+hpre_fz_Hz 7704.206
+hpre_fp_Hz 11966.327
+hpre_Qz 0.8601
+hpre_Qp 0.8980
+hpre_boost3_dB -0.1461
+hpre_lead3_deg 11.5712
+hpre_boost6_dB 0.5614
+hpre_lead6_deg 30.6039
+hpre_maxBoost_dB 8.0016
+hpre_nyquist_dB 7.6493
 hch_clips 0
-peak_mh_Hz 6054.5989
+peak_mh_Hz 4012.1659
 peak_mq_Hz 3300.0004
-synth_vs_m_fsk_wave_pct 1.436590
-synth_vs_m_f0_Hz 0.147932
-synth_vs_m_k 1.00761378
-synth_vs_m_tau_us 1.692708
-synth_vs_m_fsk_sym_pct 0.988666
-synth_vs_m_sym_rms_Hz 19.219673
-synth_vs_mq_fsk_wave_pct 1.369842
-synth_vs_mq_f0_Hz 0.342232
-synth_vs_mq_k 1.00700984
-synth_vs_mq_tau_us 1.692708
-synth_vs_mq_fsk_sym_pct 0.988963
-synth_vs_mq_sym_rms_Hz 19.225441
+steady_mh_Hz 3268.3625
+hch_fullscale_Hz 6746.7041
+synth_vs_m_fsk_wave_pct 1.655443
+synth_vs_m_f0_Hz 0.519694
+synth_vs_m_k 1.01512624
+synth_vs_m_tau_us 4.036458
+synth_vs_m_fsk_sym_pct 1.236249
+synth_vs_m_sym_rms_Hz 24.032681
+synth_vs_mq_fsk_wave_pct 1.585603
+synth_vs_mq_f0_Hz 0.715486
+synth_vs_mq_k 1.01452577
+synth_vs_mq_tau_us 4.036458
+synth_vs_mq_fsk_sym_pct 1.251091
+synth_vs_mq_sym_rms_Hz 24.321210
 mq_vs_m_fsk_wave_pct 0.749831
 mq_vs_m_f0_Hz -0.193951
 mq_vs_m_k 1.00058770
@@ -45,8 +47,8 @@ m_rect_dB -89.4924 -64.3301 -64.7217 -89.5866
 mq_window_dB -73.1511 -45.2345 0.0000 -45.7475 -73.2065
 mq_mask_dB -76.3941 -64.8112 -64.6744 -76.2740
 mq_rect_dB -75.0807 -63.6296 -63.9593 -75.0232
-synth_window_dB -66.2381 -44.9347 0.0000 -45.4820 -66.2402
-synth_mask_dB -71.5374 -62.9313 -62.8650 -70.6645
-synth_rect_dB -69.7596 -61.6287 -61.8991 -68.8874
+synth_window_dB -73.1895 -44.7163 0.0000 -45.3409 -73.4969
+synth_mask_dB -79.1594 -62.1033 -61.9993 -78.3381
+synth_rect_dB -77.6547 -60.9303 -61.0793 -76.7473
 leak_window_dB -208.1671 -191.1630 0.0000 -191.1630 -208.1671
 leak_mask_dB -90.0000 -90.0000 -90.0000 -90.0000

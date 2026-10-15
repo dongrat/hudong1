@@ -15,9 +15,9 @@ Km 2.000000e+04
 smf_fc 18668.530519
 lock_s 0.00157552
 acq_rms_Hz 0.001304
-rms_err_Hz 29.990645
-peak_err_Hz 97.539730
-lin_rms_Hz 0.011116
+rms_err_Hz 57.953268
+peak_err_Hz 177.670667
+lin_rms_Hz 0.010934
 nInst 42 49
 dac_clip 0
 seed 2404

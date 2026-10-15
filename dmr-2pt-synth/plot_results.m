@@ -21,7 +21,7 @@ i1 = R.iEx1;
 tex = tms(i0:i1);
 
 % ---- 1. baseband m(t) and symbol levels ----
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 520]);
 plot(tex, R.m(i0:i1), 'Color', [0.1 0.1 0.1], 'LineWidth', 1.3);
 hold on;
@@ -43,7 +43,7 @@ ylim([-3200 3200]);
 save_png(h, figDir, mediaDir, '01_baseband_mt_symbols.png');
 
 % ---- 2. each path's contribution ----
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 560]);
 plot(tex, R.m(i0:i1), 'Color', [0.45 0.45 0.45], 'LineWidth', 1.4);
 hold on;
@@ -59,7 +59,7 @@ legend('ideal m_q', 'PLL path only (lowpass)', 'VCO path only (highpass)', ...
 save_png(h, figDir, mediaDir, '02_path_contributions.png');
 
 % ---- 3. combined vs ideal, with lock ----
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 720]);
 subplot(2, 1, 1);
 acq = 1:R.nAcq;
@@ -80,7 +80,7 @@ legend('ideal m_q', 'synthesizer output', 'location', 'northeast');
 save_png(h, figDir, mediaDir, '03_combined_vs_ideal.png');
 
 % ---- 4. deviation error ----
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 520]);
 errEx = R.both.fDevRf(i0:i1) - R.m(i0:i1);
 plot(tex, errEx, 'Color', [0.55 0.1 0.45], 'LineWidth', 1.1);
@@ -92,7 +92,7 @@ title(sprintf('Deviation error    RMS %.1f Hz over the settled symbols (peak %.1
 save_png(h, figDir, mediaDir, '04_deviation_error.png');
 
 % ---- 5. output spectrum ----
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 720]);
 iv0 = R.iValid0;
 iv1 = R.iValid1;

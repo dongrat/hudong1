@@ -56,6 +56,12 @@ symInSlice = symSample - i0 + 1;
 fFloat = m(i0:i1);
 fCmd = mCmd(i0:i1);
 fSynth = out.fDevRf(i0:i1);
+out.hFullScale_Hz = 2047 * P.Km_HzPerV * P.dacVpp / (P.divSel * 4096);
+out.steadyMh_Hz = max(abs(out.m_h(iValid0:iValid1)));
+fprintf('  Hch full scale %.2f Hz, steady |m_h| %.2f Hz, headroom peak %.2f dB, steady %.2f dB\n', ...
+    out.hFullScale_Hz, out.steadyMh_Hz, ...
+    20 * log10(out.hFullScale_Hz / out.peakMh_Hz), ...
+    20 * log10(out.hFullScale_Hz / out.steadyMh_Hz));
 
 % Three fits. The reference is the second argument.
 fprintf('Fitting synthesizer vs pre-quantization m...\n');
@@ -271,7 +277,7 @@ fprintf('\n');
 end
 
 function plot_fsk(P, Rsm, Rsq, Rqm, symLevel)
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 760]);
 cM = [0.45 0.45 0.45];
 cQ = [0.75 0.35 0.05];
@@ -308,7 +314,7 @@ save_png(h, P, '06_fsk_error.png');
 end
 
 function plot_acpr(P, specM, specQ, specS, acM, acQ, acS)
-h = figure('visible', 'off');
+h = figure('visible', 'off', '__graphics_toolkit__', 'gnuplot');
 set(h, 'position', [40 40 980 640]);
 ref = max(specM.p);
 dbM = 10 * log10(specM.p / ref + 1e-30);
@@ -367,6 +373,8 @@ fprintf(fid, 'hpre_nyquist_dB %.4f\n', P.hpre.nyquist_dB);
 fprintf(fid, 'hch_clips %d\n', simOut.nDacClip);
 fprintf(fid, 'peak_mh_Hz %.4f\n', simOut.peakMh_Hz);
 fprintf(fid, 'peak_mq_Hz %.4f\n', simOut.peakMq_Hz);
+fprintf(fid, 'steady_mh_Hz %.4f\n', simOut.steadyMh_Hz);
+fprintf(fid, 'hch_fullscale_Hz %.4f\n', simOut.hFullScale_Hz);
 write_fit(fid, 'synth_vs_m', Rsm);
 write_fit(fid, 'synth_vs_mq', Rsq);
 write_fit(fid, 'mq_vs_m', Rqm);
