@@ -8,18 +8,31 @@ FRAC 6511845
 MOD 8387584
 quant_bits 12
 quant_lsb_Hz 37.50000447
-synth_vs_m_fsk_wave_pct 4.917147
-synth_vs_m_f0_Hz 2.646571
-synth_vs_m_k 1.05831902
-synth_vs_m_tau_us 13.020833
-synth_vs_m_fsk_sym_pct 3.767012
-synth_vs_m_sym_rms_Hz 73.230708
-synth_vs_mq_fsk_wave_pct 4.909513
-synth_vs_mq_f0_Hz 2.847809
-synth_vs_mq_k 1.05767261
-synth_vs_mq_tau_us 13.020833
-synth_vs_mq_fsk_sym_pct 3.778125
-synth_vs_mq_sym_rms_Hz 73.446743
+hpre_fz_Hz 11952.000
+hpre_fp_Hz 26533.440
+hpre_Qz 0.8010
+hpre_Qp 1.2470
+hpre_boost3_dB -0.0296
+hpre_lead3_deg 13.3159
+hpre_boost6_dB 0.1036
+hpre_lead6_deg 29.8734
+hpre_maxBoost_dB 16.3479
+hpre_nyquist_dB 13.8541
+hch_clips 0
+peak_mh_Hz 6054.5989
+peak_mq_Hz 3300.0004
+synth_vs_m_fsk_wave_pct 1.436590
+synth_vs_m_f0_Hz 0.147932
+synth_vs_m_k 1.00761378
+synth_vs_m_tau_us 1.692708
+synth_vs_m_fsk_sym_pct 0.988666
+synth_vs_m_sym_rms_Hz 19.219673
+synth_vs_mq_fsk_wave_pct 1.369842
+synth_vs_mq_f0_Hz 0.342232
+synth_vs_mq_k 1.00700984
+synth_vs_mq_tau_us 1.692708
+synth_vs_mq_fsk_sym_pct 0.988963
+synth_vs_mq_sym_rms_Hz 19.225441
 mq_vs_m_fsk_wave_pct 0.749831
 mq_vs_m_f0_Hz -0.193951
 mq_vs_m_k 1.00058770
@@ -32,8 +45,8 @@ m_rect_dB -89.4924 -64.3301 -64.7217 -89.5866
 mq_window_dB -73.1511 -45.2345 0.0000 -45.7475 -73.2065
 mq_mask_dB -76.3941 -64.8112 -64.6744 -76.2740
 mq_rect_dB -75.0807 -63.6296 -63.9593 -75.0232
-synth_window_dB -80.8979 -42.7809 0.0000 -43.5111 -81.2464
-synth_mask_dB -85.3309 -62.3980 -62.4914 -84.8489
-synth_rect_dB -85.2829 -61.0575 -61.6234 -84.5448
+synth_window_dB -66.2381 -44.9347 0.0000 -45.4820 -66.2402
+synth_mask_dB -71.5374 -62.9313 -62.8650 -70.6645
+synth_rect_dB -69.7596 -61.6287 -61.8991 -68.8874
 leak_window_dB -208.1671 -191.1630 0.0000 -191.1630 -208.1671
 leak_mask_dB -90.0000 -90.0000 -90.0000 -90.0000

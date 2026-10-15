@@ -25,7 +25,12 @@ m = [zeros(1, nAcq), mMod];
 tic;
 fprintf('Simulating synthesizer (both paths, architecture unchanged)...\n');
 out = sim_twopoint_pll(P, m, 'both');
-fprintf('  %.1f s, DAC clips %d, 12-bit LSB %.4f Hz\n', toc, out.nDacClip, P.quantLsb_Hz);
+fprintf('  %.1f s, Hch clips %d, 12-bit LSB %.4f Hz\n', toc, out.nDacClip, P.quantLsb_Hz);
+fprintf('  |m_h| peak %.2f Hz, |m_q| peak %.2f Hz\n', out.peakMh_Hz, out.peakMq_Hz);
+fprintf('  pre-emphasis boost %+0.3f dB at 3 kHz (%+.2f deg), %+0.3f dB at 6 kHz (%+.2f deg)\n', ...
+    P.hpre.boost3_dB, P.hpre.lead3_deg, P.hpre.boost6_dB, P.hpre.lead6_deg);
+fprintf('  max boost above 7 kHz %+0.2f dB at %.1f kHz, Nyquist %+0.2f dB\n', ...
+    P.hpre.maxBoost_dB, P.hpre.maxBoost_Hz / 1e3, P.hpre.nyquist_dB);
 mCmd = out.m_q;
 dq = mCmd - m;
 fprintf('  |m - m_q| max %.3f Hz (half of %.3f Hz LSB is %.3f Hz)\n', ...
@@ -82,7 +87,7 @@ if ~exist(P.mediaDir, 'dir')
 end
 plot_fsk(P, Rsm, Rsq, Rqm, symLevel);
 plot_acpr(P, specM, specQ, specS, acM, acQ, acS);
-write_fsk_acpr(rootDir, P, Rsm, Rsq, Rqm, acM, acQ, acS, acLeak);
+write_fsk_acpr(rootDir, P, out, Rsm, Rsq, Rqm, acM, acQ, acS, acLeak);
 fprintf('Figures:\n  %s\n  %s\n', P.figDir, P.mediaDir);
 end
 
@@ -337,7 +342,7 @@ close(h);
 copyfile(out, fullfile(P.mediaDir, name));
 end
 
-function write_fsk_acpr(rootDir, P, Rsm, Rsq, Rqm, acM, acQ, acS, acLeak)
+function write_fsk_acpr(rootDir, P, simOut, Rsm, Rsq, Rqm, acM, acQ, acS, acLeak)
 fid = fopen(fullfile(rootDir, 'fsk_acpr_results.txt'), 'w');
 fprintf(fid, 'nSymbols %d\n', P.nSymbols);
 fprintf(fid, 'seed %d\n', P.seed);
@@ -349,6 +354,19 @@ fprintf(fid, 'FRAC %d\n', P.FRAC);
 fprintf(fid, 'MOD %d\n', P.MOD);
 fprintf(fid, 'quant_bits %d\n', P.quantBits);
 fprintf(fid, 'quant_lsb_Hz %.8f\n', P.quantLsb_Hz);
+fprintf(fid, 'hpre_fz_Hz %.3f\n', P.hpre.fz_Hz);
+fprintf(fid, 'hpre_fp_Hz %.3f\n', P.hpre.fp_Hz);
+fprintf(fid, 'hpre_Qz %.4f\n', P.hpre.Qz);
+fprintf(fid, 'hpre_Qp %.4f\n', P.hpre.Qp);
+fprintf(fid, 'hpre_boost3_dB %.4f\n', P.hpre.boost3_dB);
+fprintf(fid, 'hpre_lead3_deg %.4f\n', P.hpre.lead3_deg);
+fprintf(fid, 'hpre_boost6_dB %.4f\n', P.hpre.boost6_dB);
+fprintf(fid, 'hpre_lead6_deg %.4f\n', P.hpre.lead6_deg);
+fprintf(fid, 'hpre_maxBoost_dB %.4f\n', P.hpre.maxBoost_dB);
+fprintf(fid, 'hpre_nyquist_dB %.4f\n', P.hpre.nyquist_dB);
+fprintf(fid, 'hch_clips %d\n', simOut.nDacClip);
+fprintf(fid, 'peak_mh_Hz %.4f\n', simOut.peakMh_Hz);
+fprintf(fid, 'peak_mq_Hz %.4f\n', simOut.peakMq_Hz);
 write_fit(fid, 'synth_vs_m', Rsm);
 write_fit(fid, 'synth_vs_mq', Rsq);
 write_fit(fid, 'mq_vs_m', Rqm);

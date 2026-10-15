@@ -93,6 +93,7 @@ end
 L = design_loop_filter(P);
 P.loop = L;
 [P.smfB, P.smfA, P.smfFcAnalog_Hz] = smf_discrete(P.fsMod_Hz);
+[P.hpreB, P.hpreA, P.hpre] = design_h_preemph(P.fsMod_Hz, P.smfB, P.smfA);
 
 %% Paths
 P.figDir = fullfile(fileparts(mfilename('fullpath')), 'figures');

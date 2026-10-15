@@ -12,8 +12,11 @@ function out = sim_twopoint_pll(P, mRf, mode)
 %    q16 = round(m * OFS_DEN / fPFD)
 %    q12 = clamp(round(q16 / 16), -2048, 2047)
 %    m_q = q12 * 16 * fPFD / OFS_DEN
-%  Lch OFS_MDLT = q12 * 16. Hch is rounded from m_q only:
-%    Hch = clamp(round(m_q * DIVSEL / Km * 4096 / 1.35), -2048, 2047)
+%  Lch OFS_MDLT = q12 * 16, with no extra filter.
+%  Hch is a band-limited inverse of the SMF applied to m_q, then the
+%  existing 12-bit MODDAC quantizer:
+%    m_h = preemph(m_q)          approximately m_q / Gsmf on 0-6 kHz
+%    Hch = clamp(round(m_h * DIVSEL / Km * 4096 / 1.35), -2048, 2047)
 %  out.fDevRf is the TX-divider output deviation, (fVCO - fVCO0)/DIV.
 
 if nargin < 3
@@ -40,12 +43,16 @@ fFree = P.fVco_Hz;
 % Both paths see the same quantized deviation. Do this before either channel.
 [m_q, qWord, q12] = quantize_ofs(P, mRf);
 
-% --- Hch: 12-bit MODDAC from m_q only, then SMF and Km (Hz at the VCO) ---
+% H-channel pre-emphasis. Lch keeps m_q. The lead is outside the loop design.
+m_h = filter(P.hpreB, P.hpreA, m_q(:)).';
+
+% --- Hch: 12-bit MODDAC from m_h, then SMF and Km (Hz at the VCO) ---
 fDirTick = zeros(1, nTick);
 nClip = 0;
+code = zeros(1, nTick);
 if useVco
-    % code = m_q * DIVSEL / Km * 4096 / Vpp, signed 12-bit.
-    codeUnc = round(m_q * P.divSel / P.Km_HzPerV * 4096 / P.dacVpp);
+    % code = m_h * DIVSEL / Km * 4096 / Vpp, signed 12-bit.
+    codeUnc = round(m_h * P.divSel / P.Km_HzPerV * 4096 / P.dacVpp);
     code = min(2047, max(-2048, codeUnc));
     nClip = sum(code ~= codeUnc);
     vAc = code * (P.dacVpp / 4096);
@@ -161,8 +168,12 @@ end
 out.fVco = fMean;
 out.fDevRf = (fMean - P.fVco_Hz) / P.divSel;
 out.m_q = m_q;
+out.m_h = m_h;
 out.q = qWord;
 out.q12 = q12;
+out.hCode = code;
+out.peakMh_Hz = max(abs(m_h));
+out.peakMq_Hz = max(abs(m_q));
 out.nInstMin = nMin;
 out.nInstMax = nMax;
 out.nDacClip = nClip;
